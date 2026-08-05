@@ -115,6 +115,7 @@ body,
 
 .menu {
     display: flex;
+    flex-direction: column;
     position: absolute;
     top: 100%;
     left: 0;
@@ -122,8 +123,6 @@ body,
     z-index: 99;
     background: var(--white);
     box-shadow: 0 8px 16px var(--shadow);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 .menu.hidden {
@@ -131,21 +130,25 @@ body,
 }
 
 .menu-item {
-    flex: 1;
-    min-width: 90px;
-    padding: 14px 10px;
+    padding: 18px 20px;
     border: none;
+    border-bottom: 1px solid var(--border);
     background: none;
-    font-size: 1.05rem;
+    font-size: 1.2rem;
+    text-align: left;
     color: var(--text-light);
     cursor: pointer;
     transition: all 0.2s;
-    white-space: nowrap;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
 }
 
 .menu-item.active {
     color: var(--primary);
-    border-bottom: 3px solid var(--primary);
+    background: rgba(52, 152, 219, 0.1);
+    box-shadow: inset 4px 0 0 var(--primary);
     font-weight: 600;
 }
 
