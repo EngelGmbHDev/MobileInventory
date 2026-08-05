@@ -74,6 +74,18 @@
                         </div>
                     </div>
                 </div>
+                                <div id="quantity-input" class="quantity-input hidden">
+                    <h3>Menge eingeben:</h3>
+                    <div class="quantity-controls">
+                        <button class="btn btn-large" id="qtyMinus">−</button>
+                        <input type="number" id="quantity" value="1" min="0">
+                        <button class="btn btn-large" id="qtyPlus">+</button>
+                    </div>
+                    <div class="quantity-actions">
+                        <button id="saveRecord" class="btn btn-success btn-large">✓ Speichern</button>
+                        <button id="cancelRecord" class="btn btn-danger">✕ Abbrechen</button>
+                    </div>
+                </div>
 
                 <div id="scanner-container">
                     <div id="reader"></div>
@@ -89,18 +101,7 @@
                     <button id="manualSubmit" class="btn btn-primary">OK</button>
                 </div>
 
-                <div id="quantity-input" class="quantity-input hidden">
-                    <h3>Menge eingeben:</h3>
-                    <div class="quantity-controls">
-                        <button class="btn btn-large" id="qtyMinus">−</button>
-                        <input type="number" id="quantity" value="1" min="0">
-                        <button class="btn btn-large" id="qtyPlus">+</button>
-                    </div>
-                    <div class="quantity-actions">
-                        <button id="saveRecord" class="btn btn-success btn-large">✓ Speichern</button>
-                        <button id="cancelRecord" class="btn btn-danger">✕ Abbrechen</button>
-                    </div>
-                </div>
+
 
                 <div id="scan-feedback" class="feedback hidden"></div>
             </section>
