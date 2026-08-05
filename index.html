@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="description" content="Mobile Warehouse Inventory Scanner">
+    
+    <title>Mobile Inventur</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>📦 Mobile Inventur</h1>
+            <button id="menuBtn" class="icon-btn">☰</button>
+        </header>
+
+        <!-- Navigation Menu -->
+        <nav id="menu" class="menu hidden">
+            <button data-page="scan" class="menu-item active">📷 Scannen</button>
+            <button data-page="records" class="menu-item">📋 Aufnahmen</button>
+            <button data-page="master" class="menu-item">📁 Stammdaten</button>
+            <button data-page="settings" class="menu-item">⚙️ Einstellungen</button>
+        </nav>
+
+        <!-- Pages -->
+        <main id="content">
+            
+            <!-- Scan Page -->
+            <section id="page-scan" class="page active">
+                <div class="scan-status">
+                    <div class="status-item">
+                        <span class="status-label">Lagerplatz:</span>
+                        <span id="currentLocation" class="status-value">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Artikel:</span>
+                        <span id="currentItem" class="status-value">-</span>
+                    </div>
+                </div>
+
+                <div id="scanner-container">
+                    <div id="reader"></div>
+                </div>
+
+                <div id="manual-input" class="manual-input">
+                    <input type="text" id="manualCode" placeholder="Code manuell eingeben...">
+                    <button id="manualSubmit" class="btn btn-primary">OK</button>
+                </div>
+
+                <div id="quantity-input" class="quantity-input hidden">
+                    <h3>Menge eingeben:</h3>
+                    <div class="quantity-controls">
+                        <button class="btn btn-large" id="qtyMinus">−</button>
+                        <input type="number" id="quantity" value="1" min="0">
+                        <button class="btn btn-large" id="qtyPlus">+</button>
+                    </div>
+                    <div class="quantity-actions">
+                        <button id="saveRecord" class="btn btn-success btn-large">✓ Speichern</button>
+                        <button id="cancelRecord" class="btn btn-danger">✕ Abbrechen</button>
+                    </div>
+                </div>
+
+                <div id="scan-feedback" class="feedback hidden"></div>
+            </section>
+
+            <!-- Records Page -->
+            <section id="page-records" class="page hidden">
+                <div class="page-actions">
+                    <button id="exportExcel" class="btn btn-success">📥 Excel Export</button>
+                    <button id="sendEmail" class="btn btn-primary">📧 Per Email</button>
+                    <button id="clearRecords" class="btn btn-danger">🗑️ Alle löschen</button>
+                </div>
+                
+                <div class="records-summary">
+                    <span id="recordCount">0 Aufnahmen</span>
+                </div>
+
+                <div id="recordsList" class="records-list">
+                    <!-- Records will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Master Data Page -->
+            <section id="page-master" class="page hidden">
+                <div class="upload-section">
+                    <h3>📁 Stammdaten laden</h3>
+                    <p>Excel-Datei mit Artikeln und Lagerplätzen hochladen:</p>
+                    <input type="file" id="masterFileInput" accept=".xlsx,.xls,.csv">
+                    <button id="loadMasterData" class="btn btn-primary">Laden</button>
+                </div>
+
+                <div class="master-info">
+                    <div class="info-card">
+                        <span class="info-number" id="itemCount">0</span>
+                        <span class="info-label">Artikel</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-number" id="locationCount">0</span>
+                        <span class="info-label">Lagerplätze</span>
+                    </div>
+                </div>
+
+                <div class="master-actions">
+                    <button id="clearMasterData" class="btn btn-warning">Stammdaten löschen</button>
+                    <button id="downloadTemplate" class="btn btn-secondary">📄 Vorlage herunterladen</button>
+                </div>
+            </section>
+
+            <!-- Settings Page -->
+            <section id="page-settings" class="page hidden">
+                <div class="settings-group">
+                    <h3>📷 Scanner</h3>
+                    <label class="setting-item">
+                        <span>Kamera</span>
+                        <select id="cameraSelect">
+                            <option value="environment">Rückkamera</option>
+                            <option value="user">Frontkamera</option>
+                        </select>
+                    </label>
+                    <label class="setting-item">
+                        <span>Ton bei Scan</span>
+                        <input type="checkbox" id="beepOnScan" checked>
+                    </label>
+                    <label class="setting-item">
+                        <span>Vibration bei Scan</span>
+                        <input type="checkbox" id="vibrateOnScan" checked>
+                    </label>
+                </div>
+
+                <div class="settings-group">
+                    <h3>✉️ Email</h3>
+                    <label class="setting-item">
+                        <span>Empfänger</span>
+                        <input type="email" id="emailRecipient" placeholder="email@example.com">
+                    </label>
+                </div>
+
+                <div class="settings-group">
+                    <h3>📋 Validierung</h3>
+                    <label class="setting-item">
+                        <span>Nur bekannte Artikel erlauben</span>
+                        <input type="checkbox" id="strictItemValidation">
+                    </label>
+                    <label class="setting-item">
+                        <span>Nur bekannte Lagerplätze erlauben</span>
+                        <input type="checkbox" id="strictLocationValidation">
+                    </label>
+                </div>
+
+                <div class="settings-group">
+                    <h3>💾 Daten</h3>
+                    <button id="exportAllData" class="btn btn-secondary">Alle Daten exportieren</button>
+                    <button id="resetApp" class="btn btn-danger">App zurücksetzen</button>
+                </div>
+
+                <div class="app-info">
+                    <p>Mobile Inventur v1.0</p>
+                    <p>© 2024</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Scripts -->
+    <script src="js/db.js"></script>
+    <script src="js/scanner.js"></script>
+    <script src="js/excel.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
