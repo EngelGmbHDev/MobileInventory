@@ -115,8 +115,13 @@ body,
 
 .menu {
     display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 99;
     background: var(--white);
-    border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 16px var(--shadow);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -127,11 +132,11 @@ body,
 
 .menu-item {
     flex: 1;
-    min-width: 80px;
-    padding: 12px 8px;
+    min-width: 90px;
+    padding: 14px 10px;
     border: none;
     background: none;
-    font-size: 0.85rem;
+    font-size: 1.05rem;
     color: var(--text-light);
     cursor: pointer;
     transition: all 0.2s;
