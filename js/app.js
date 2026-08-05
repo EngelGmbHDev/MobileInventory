@@ -75,6 +75,8 @@ const App = {
             itemStatusItem: document.getElementById('itemStatusItem'),
             currentLocation: document.getElementById('currentLocation'),
             currentItem: document.getElementById('currentItem'),
+            clearLocationBtn: document.getElementById('clearLocation'),
+            clearItemBtn: document.getElementById('clearItem'),
             lastScan: document.getElementById('lastScan'),
             lastScanValue: document.getElementById('lastScanValue'),
             manualCode: document.getElementById('manualCode'),
@@ -157,7 +159,12 @@ const App = {
                 this.elements.manualSubmit.click();
             }
         });
-        
+
+        // Clear scanned Lagerplatz/Artikel
+        this.elements.clearLocationBtn.addEventListener('click', () => this.clearLocation());
+        this.elements.clearItemBtn.addEventListener('click', () => this.cancelCurrentRecord());
+
+
         // Quantity controls
         this.elements.qtyMinus.addEventListener('click', () => {
             const qty = parseInt(this.elements.quantity.value) || 0;
@@ -244,21 +251,43 @@ const App = {
     },
 
     /**
-     * Show the most recently scanned raw code below the scanner
+     * Show the most recently scanned raw code below the scanner.
+     * If it resolved via the Barcode/EAN map, also show the ItemCode.
      */
     showLastScan(code) {
-        this.elements.lastScanValue.textContent = code;
+        const resolvedItemCode = this.masterItemsByBarcode.get(code);
+        this.elements.lastScanValue.textContent = resolvedItemCode
+            ? `${code} → ItemCode: ${resolvedItemCode}`
+            : code;
         this.elements.lastScan.classList.remove('hidden');
     },
 
     /**
-     * Highlight whether a Lagerplatz or Artikel scan is expected next
+     * Highlight whether a Lagerplatz or Artikel scan is expected next,
+     * and show/hide the clear ("✕") buttons for whatever is currently set
      */
     updateExpectedScanTarget() {
         const expectingLocation = !this.currentLocation;
         const expectingItem = !!this.currentLocation && !this.currentItem;
         this.elements.locationStatusItem.classList.toggle('expected', expectingLocation);
         this.elements.itemStatusItem.classList.toggle('expected', expectingItem);
+        this.elements.clearLocationBtn.classList.toggle('hidden', !this.currentLocation);
+        this.elements.clearItemBtn.classList.toggle('hidden', !this.currentItem);
+    },
+
+    /**
+     * Clear the current Lagerplatz (and the Artikel that depends on it)
+     */
+    clearLocation() {
+        this.currentLocation = null;
+        this.currentItem = null;
+        this.elements.currentLocation.textContent = '-';
+        this.elements.currentLocation.className = 'status-value';
+        this.elements.currentItem.textContent = '-';
+        this.elements.currentItem.className = 'status-value';
+        this.elements.quantityInput.classList.add('hidden');
+        this.updateExpectedScanTarget();
+        this.hideFeedback();
     },
 
     /**

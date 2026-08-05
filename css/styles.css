@@ -302,6 +302,29 @@ main {
     color: var(--danger);
 }
 
+.status-value-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-clear {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.status-clear:hover,
+.status-clear:active {
+    background: rgba(231, 76, 60, 0.14);
+}
+
 #scanner-container {
     background: var(--white);
     border-radius: 12px;
@@ -324,28 +347,27 @@ main {
 
 .last-scan {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 4px;
     background: var(--white);
     border-radius: 8px;
-    padding: 8px 14px;
+    padding: 10px 16px;
     margin-bottom: 16px;
-    font-size: 0.85rem;
     box-shadow: 0 1px 4px var(--shadow);
 }
 
 .last-scan-label {
     color: var(--text-light);
+    font-size: 0.8rem;
     white-space: nowrap;
 }
 
 .last-scan-value {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.3rem;
     color: var(--heading);
     font-family: monospace;
     overflow-wrap: anywhere;
-    text-align: right;
 }
 
 .manual-input {

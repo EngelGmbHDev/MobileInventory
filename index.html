@@ -61,11 +61,17 @@
                 <div class="scan-status">
                     <div id="locationStatusItem" class="status-item">
                         <span class="status-label">Lagerplatz:</span>
-                        <span id="currentLocation" class="status-value">-</span>
+                        <div class="status-value-wrap">
+                            <span id="currentLocation" class="status-value">-</span>
+                            <button id="clearLocation" class="status-clear hidden" title="Lagerplatz zurücksetzen">✕</button>
+                        </div>
                     </div>
                     <div id="itemStatusItem" class="status-item">
                         <span class="status-label">Artikel:</span>
-                        <span id="currentItem" class="status-value">-</span>
+                        <div class="status-value-wrap">
+                            <span id="currentItem" class="status-value">-</span>
+                            <button id="clearItem" class="status-clear hidden" title="Artikel zurücksetzen">✕</button>
+                        </div>
                     </div>
                 </div>
 
