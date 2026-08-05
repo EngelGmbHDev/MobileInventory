@@ -54,7 +54,8 @@ body,
 .quantity-controls input,
 .setting-item select,
 .setting-item input[type="email"],
-.setting-item input[type="text"] {
+.setting-item input[type="text"],
+.upload-section input[type="text"] {
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
@@ -525,6 +526,35 @@ main {
     border: 2px dashed var(--border);
     border-radius: 8px;
     background: var(--light);
+}
+
+.upload-section input[type="text"] {
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--white);
+    color: var(--text);
+}
+
+.upload-section input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.upload-section .btn {
+    width: 100%;
+}
+
+.upload-divider {
+    text-align: center;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 16px;
 }
 
 .master-info {

@@ -3,6 +3,9 @@
  */
 
 const App = {
+    // Default path (relative to index.html) for the shared master data file
+    DEFAULT_MASTER_DATA_URL: 'data/stammdaten.xlsx',
+
     // Current state
     currentPage: 'scan',
     currentLocation: null,
@@ -86,6 +89,8 @@ const App = {
             // Master data page
             masterFileInput: document.getElementById('masterFileInput'),
             loadMasterData: document.getElementById('loadMasterData'),
+            masterServerPath: document.getElementById('masterServerPath'),
+            loadMasterDataFromServer: document.getElementById('loadMasterDataFromServer'),
             clearMasterData: document.getElementById('clearMasterData'),
             downloadTemplate: document.getElementById('downloadTemplate'),
             itemCount: document.getElementById('itemCount'),
@@ -167,6 +172,10 @@ const App = {
         
         // Master data page
         this.elements.loadMasterData.addEventListener('click', () => this.loadMasterFile());
+        this.elements.loadMasterDataFromServer.addEventListener('click', () => this.loadMasterDataFromServer());
+        this.elements.masterServerPath.addEventListener('change', (e) => {
+            Database.setSetting('masterDataUrl', e.target.value.trim());
+        });
         this.elements.clearMasterData.addEventListener('click', () => this.clearMasterData());
         this.elements.downloadTemplate.addEventListener('click', () => Excel.downloadTemplate());
         
@@ -333,21 +342,20 @@ const App = {
         
         this.currentLocation = {
             code,
-            name: location?.name || code,
             isValid
         };
-        
+
         // Clear item when changing location
         this.currentItem = null;
-        
+
         // Update UI
-        this.elements.currentLocation.textContent = this.currentLocation.name;
+        this.elements.currentLocation.textContent = this.currentLocation.code;
         this.elements.currentLocation.classList.toggle('valid', isValid);
         this.elements.currentLocation.classList.toggle('invalid', !isValid);
         this.elements.currentItem.textContent = '-';
         this.elements.quantityInput.classList.add('hidden');
-        
-        this.showFeedback(`Lagerplatz: ${this.currentLocation.name}`, isValid ? 'success' : 'warning');
+
+        this.showFeedback(`Lagerplatz: ${this.currentLocation.code}`, isValid ? 'success' : 'warning');
     },
     
     /**
@@ -371,22 +379,21 @@ const App = {
         
         this.currentItem = {
             code,
-            name: item?.name || code,
             isValid
         };
-        
+
         // Update UI
-        this.elements.currentItem.textContent = this.currentItem.name;
+        this.elements.currentItem.textContent = this.currentItem.code;
         this.elements.currentItem.classList.toggle('valid', isValid);
         this.elements.currentItem.classList.toggle('invalid', !isValid);
-        
+
         // Show quantity input
         this.elements.quantity.value = 1;
         this.elements.quantityInput.classList.remove('hidden');
         this.elements.quantity.focus();
         this.elements.quantity.select();
-        
-        this.showFeedback(`Artikel: ${this.currentItem.name}`, isValid ? 'success' : 'warning');
+
+        this.showFeedback(`Artikel: ${this.currentItem.code}`, isValid ? 'success' : 'warning');
     },
     
     /**
@@ -444,6 +451,7 @@ const App = {
         this.elements.emailRecipient.value = settings.emailRecipient || '';
         this.elements.strictItemValidation.checked = settings.strictItemValidation === true;
         this.elements.strictLocationValidation.checked = settings.strictLocationValidation === true;
+        this.elements.masterServerPath.value = settings.masterDataUrl || this.DEFAULT_MASTER_DATA_URL;
     },
     
     /**
@@ -512,6 +520,35 @@ const App = {
     },
     
     /**
+     * Load master data from a shared file in the project folder (e.g. data/stammdaten.xlsx)
+     */
+    async loadMasterDataFromServer() {
+        const path = this.elements.masterServerPath.value.trim() || this.DEFAULT_MASTER_DATA_URL;
+
+        try {
+            const data = await Excel.importMasterDataFromUrl(path);
+
+            if (data.items.length > 0) {
+                await Database.addItems(data.items);
+            }
+
+            if (data.locations.length > 0) {
+                await Database.addLocations(data.locations);
+            }
+
+            await Database.setSetting('masterDataUrl', path);
+            await this.loadMasterDataCounts();
+            await this.loadMasterDataIntoMemory();
+
+            this.showToast(`${data.items.length} Artikel, ${data.locations.length} Lagerplätze aus Projektordner geladen`, 'success');
+
+        } catch (error) {
+            console.error('[App] Server import error:', error);
+            this.showToast('Fehler beim Laden: ' + error.message, 'error');
+        }
+    },
+
+    /**
      * Clear master data
      */
     async clearMasterData() {
@@ -541,21 +578,16 @@ const App = {
         const records = await Database.getAllRecords();
         await this.updateRecordCount();
         
-        this.elements.recordsList.innerHTML = records.map(record => {
-            const item = this.masterItems.get(record.itemCode);
-            const location = this.masterLocations.get(record.locationCode);
-            
-            return `
-                <div class="record-item" data-id="${record.id}">
-                    <div class="record-info">
-                        <div class="record-location">${location?.name || record.locationCode}</div>
-                        <div class="record-item-code">${item?.name || record.itemCode}</div>
-                    </div>
-                    <div class="record-quantity">${record.quantity}</div>
-                    <button class="record-delete" onclick="App.deleteRecord(${record.id})">🗑️</button>
+        this.elements.recordsList.innerHTML = records.map(record => `
+            <div class="record-item" data-id="${record.id}">
+                <div class="record-info">
+                    <div class="record-location">${record.locationCode}</div>
+                    <div class="record-item-code">${record.itemCode}</div>
                 </div>
-            `;
-        }).join('');
+                <div class="record-quantity">${record.quantity}</div>
+                <button class="record-delete" onclick="App.deleteRecord(${record.id})">🗑️</button>
+            </div>
+        `).join('');
     },
     
     /**
@@ -590,11 +622,8 @@ const App = {
             return;
         }
         
-        const blob = Excel.exportRecords(records, {
-            items: this.masterItems,
-            locations: this.masterLocations
-        });
-        
+        const blob = Excel.exportRecords(records);
+
         Excel.downloadFile(blob, Excel.generateFilename());
         this.showToast('Excel exportiert', 'success');
     },

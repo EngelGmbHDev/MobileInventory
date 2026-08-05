@@ -54,19 +54,30 @@ git push -u origin main
 
 ### Stammdaten laden
 
-1. Excel-Datei mit Artikeln und Lagerplätzen erstellen:
+1. Excel-Datei mit Artikeln und Lagerplätzen erstellen (bewusst nur Codes,
+   ohne Name/Kategorie – die App zeigt/exportiert immer den Code, das
+   hält auch große Dateien mit vielen tausend Zeilen schnell zu erstellen
+   und zu importieren):
 
 **Blatt "Items":**
-| Code | Name | Category |
-|------|------|----------|
-| 4006381333931 | Schrauben M8 | Befestigung |
+| Code |
+|------|
+| 4006381333931 |
 
 **Blatt "Locations":**
-| Code | Name | Warehouse |
-|------|------|-----------|
-| 10055-01-01 | Regal 1, Fach 1 | 10055 |
+| Code | Warehouse |
+|------|-----------|
+| 10055-01-01 | 10055 |
 
 2. In App: "Stammdaten" → Datei hochladen → "Laden"
+
+**Alternative: Gemeinsame Datei für alle**
+
+Falls alle Nutzer dieselben Stammdaten verwenden sollen, kann die Excel-Datei
+statt manuellem Hochladen auch als `data/stammdaten.xlsx` im Projektordner
+abgelegt werden (neben `index.html`, wird mit demselben Webserver
+ausgeliefert). In der App dann auf "🌐 Aus Projektordner laden" tippen.
+Der Pfad ist im Textfeld daneben anpassbar, falls die Datei anders heißt.
 
 ### Scannen
 
@@ -95,6 +106,8 @@ MobileInventory/
 │   ├── db.js          # IndexedDB
 │   ├── scanner.js     # Kamera-Scanner
 │   └── excel.js       # Excel Import/Export
+├── data/
+│   └── stammdaten.xlsx # Optionale gemeinsame Stammdaten-Datei
 ├── icons/             # PWA-Icons
 ├── CLAUDE.md          # Claude Code Dokumentation
 └── README.md          # Diese Datei

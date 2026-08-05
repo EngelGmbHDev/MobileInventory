@@ -13,6 +13,14 @@ db.version(1).stores({
     appSettings: 'key'
 });
 
+// v2: master data simplified to just codes (+ warehouse for locations) - Name/Category dropped
+db.version(2).stores({
+    masterItems: 'code',
+    masterLocations: 'code, warehouse',
+    scanRecords: '++id, timestamp, locationCode, itemCode, quantity, isValidItem, isValidLocation',
+    appSettings: 'key'
+});
+
 /**
  * Database API
  */

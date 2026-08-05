@@ -27,6 +27,8 @@ MobileInventory/
 │   ├── scanner.js     # Camera scanner
 │   ├── excel.js       # Excel import/export
 │   └── email.js       # Email functionality
+├── data/
+│   └── stammdaten.xlsx # Optional shared master data file (see below)
 ├── icons/             # PWA icons (192x192, 512x512)
 └── CLAUDE.md          # This file
 ```
@@ -56,12 +58,9 @@ Export → Excel File → Email
 
 ### masterItems
 - `code` (primary key): Item barcode/code
-- `name`: Item description
-- `category`: Optional grouping
 
 ### masterLocations
 - `code` (primary key): Location barcode
-- `name`: Location description
 - `warehouse`: Warehouse code
 
 ### scanRecords
@@ -110,24 +109,44 @@ Export → Excel File → Email
 
 ## Excel Format (Import)
 
-Expected columns in uploaded Excel:
+Expected columns in uploaded Excel. Kept intentionally minimal (no Name/Category)
+so master data files stay cheap to produce and fast to import at scale
+(tens of thousands of rows) — the app always displays/exports by code.
 
 **Sheet 1: Items**
-| Column A | Column B | Column C |
-|----------|----------|----------|
-| Code     | Name     | Category |
+| Column A |
+|----------|
+| Code     |
 
 **Sheet 2: Locations**
-| Column A | Column B | Column C |
-|----------|----------|----------|
-| Code     | Name     | Warehouse |
+| Column A | Column B  |
+|----------|-----------|
+| Code     | Warehouse |
+
+## Shared Master Data File (Server-Hosted)
+
+For teams that use one common master data file instead of everyone
+uploading their own, an Excel file can be placed as a static asset in the
+project folder (default: `data/stammdaten.xlsx`) and loaded via `fetch()`
+from the "Stammdaten" page ("🌐 Aus Projektordner laden" button). This
+still requires no backend — the file is just served statically alongside
+`index.html` by whatever static host is already serving the app.
+
+- Same format/column rules as manual import (see above)
+- Path is configurable per-device via the text field next to the button
+  (persisted in `appSettings` under key `masterDataUrl`, default
+  `data/stammdaten.xlsx`)
+- Implemented in `Excel.importMasterDataFromUrl()` (`js/excel.js`) and
+  `App.loadMasterDataFromServer()` (`js/app.js`)
+- Loading replaces existing master data the same way manual upload does
+  (`masterItems`/`masterLocations` tables are cleared and repopulated)
 
 ## Excel Format (Export)
 
 Generated Excel contains:
 
-| Timestamp | Location | LocationName | Item | ItemName | Quantity | Valid |
-|-----------|----------|--------------|------|----------|----------|-------|
+| Zeitstempel | Lagerplatz | Artikel | Menge | Artikel gültig | Lagerplatz gültig |
+|-------------|------------|---------|-------|-----------------|--------------------|
 
 ## Deployment
 
