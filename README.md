@@ -60,9 +60,14 @@ git push -u origin main
    und zu importieren):
 
 **Blatt "Items":**
-| Code |
-|------|
-| 4006381333931 |
+| Code | Barcode (optional) |
+|------|---------------------|
+| 424810-181-3840 | 4046304144459 |
+
+`Barcode` ist der EAN/Hersteller-Barcode auf dem Produkt (z.B. EAN-13) –
+optional, falls sich das vom internen `Code` unterscheidet (z.B. Code-39-
+Etikett vs. EAN auf der Verpackung). Wird die EAN gescannt, landet trotzdem
+der `Code` in den Aufnahmen (siehe unten).
 
 **Blatt "Locations":**
 | Code | Warehouse |
@@ -81,10 +86,13 @@ Der Pfad ist im Textfeld daneben anpassbar, falls die Datei anders heißt.
 
 ### Scannen
 
-1. **Lagerplatz scannen** - Wird als aktueller Ort gesetzt
-2. **Artikel scannen** - Wird dem Lagerplatz zugeordnet
+1. **Lagerplatz scannen** - Wird als aktueller Ort gesetzt (blau markiert, solange erwartet)
+2. **Artikel scannen** - Wird dem Lagerplatz zugeordnet (danach blau markiert); EAN- oder
+   Code-Scan werden beide auf den `Code` aufgelöst
 3. **Menge eingeben** - Mit +/- oder direkt tippen
 4. **Speichern** - Grüner Button
+
+Unter dem Kamerafenster wird immer der zuletzt gescannte Rohwert angezeigt.
 
 ### Exportieren
 

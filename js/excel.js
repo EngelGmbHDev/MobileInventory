@@ -113,18 +113,24 @@ const Excel = {
         const items = [];
         const headers = rows[0].map(h => String(h).toLowerCase().trim());
 
-        // Find column index
-        const codeIdx = this.findColumnIndex(headers, ['code', 'itemcode', 'artikelnummer', 'artikel-nr', 'barcode']);
+        // Find column indices
+        const codeIdx = this.findColumnIndex(headers, ['code', 'itemcode', 'artikelnummer', 'artikel-nr']);
+        const barcodeIdx = this.findColumnIndex(headers, ['barcode', 'ean', 'ean13', 'ean-13', 'gtin']);
+
+        // Default to first columns if not found
         const codeCol = codeIdx !== -1 ? codeIdx : 0;
+        const barcodeCol = barcodeIdx !== -1 ? barcodeIdx : 1;
 
         // Parse data rows
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
             if (!row || !row[codeCol]) continue;
 
-            items.push({
-                code: String(row[codeCol]).trim()
-            });
+            const item = { code: String(row[codeCol]).trim() };
+            if (row[barcodeCol]) {
+                item.barcode = String(row[barcodeCol]).trim();
+            }
+            items.push(item);
         }
 
         return items;
@@ -254,9 +260,9 @@ const Excel = {
     downloadTemplate() {
         // Items sheet data
         const itemsData = [
-            ['Code'],
-            ['4006381333931'],
-            ['4006381333948']
+            ['Code', 'Barcode'],
+            ['424810-181-3840', '4046304144459'],
+            ['424810-182-3841', '4046304144466']
         ];
 
         // Locations sheet data

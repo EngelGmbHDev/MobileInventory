@@ -11,6 +11,7 @@ const App = {
     currentLocation: null,
     currentItem: null,
     masterItems: new Map(),
+    masterItemsByBarcode: new Map(),
     masterLocations: new Map(),
     
     // DOM Elements
@@ -27,6 +28,9 @@ const App = {
 
         // Sync theme toggle icon with theme applied in <head>
         this.initTheme();
+
+        // Highlight the initial expected scan target (Lagerplatz)
+        this.updateExpectedScanTarget();
 
         // Setup event listeners
         this.setupEventListeners();
@@ -67,8 +71,12 @@ const App = {
             pages: document.querySelectorAll('.page'),
             
             // Scan page
+            locationStatusItem: document.getElementById('locationStatusItem'),
+            itemStatusItem: document.getElementById('itemStatusItem'),
             currentLocation: document.getElementById('currentLocation'),
             currentItem: document.getElementById('currentItem'),
+            lastScan: document.getElementById('lastScan'),
+            lastScanValue: document.getElementById('lastScanValue'),
             manualCode: document.getElementById('manualCode'),
             manualSubmit: document.getElementById('manualSubmit'),
             quantityInput: document.getElementById('quantity-input'),
@@ -236,6 +244,24 @@ const App = {
     },
 
     /**
+     * Show the most recently scanned raw code below the scanner
+     */
+    showLastScan(code) {
+        this.elements.lastScanValue.textContent = code;
+        this.elements.lastScan.classList.remove('hidden');
+    },
+
+    /**
+     * Highlight whether a Lagerplatz or Artikel scan is expected next
+     */
+    updateExpectedScanTarget() {
+        const expectingLocation = !this.currentLocation;
+        const expectingItem = !!this.currentLocation && !this.currentItem;
+        this.elements.locationStatusItem.classList.toggle('expected', expectingLocation);
+        this.elements.itemStatusItem.classList.toggle('expected', expectingItem);
+    },
+
+    /**
      * Toggle menu visibility
      */
     toggleMenu() {
@@ -290,7 +316,8 @@ const App = {
      */
     async handleScan(code) {
         console.log('[App] Scanned:', code);
-        
+        this.showLastScan(code);
+
         // Determine if location or item
         const isLocation = await this.isLocationCode(code);
         
@@ -307,22 +334,28 @@ const App = {
      * Check if code is a location
      */
     async isLocationCode(code) {
-        // Check against master data first
+        // A Barcode/EAN match is unambiguously an item - check this first
+        // since it's an exact match (EAN-13 is shorter/numeric vs. Code 39 codes)
+        if (this.masterItemsByBarcode.has(code)) {
+            return false;
+        }
+
+        // Check against master data
         if (this.masterLocations.has(code)) {
             return true;
         }
-        
+
         // Check against items
         if (this.masterItems.has(code)) {
             return false;
         }
-        
+
         // Heuristic: location codes often contain dashes and are shorter
         // This can be customized based on your code format
         if (code.includes('-') && code.length < 15) {
             return true;
         }
-        
+
         return false;
     },
     
@@ -354,6 +387,7 @@ const App = {
         this.elements.currentLocation.classList.toggle('invalid', !isValid);
         this.elements.currentItem.textContent = '-';
         this.elements.quantityInput.classList.add('hidden');
+        this.updateExpectedScanTarget();
 
         this.showFeedback(`Lagerplatz: ${this.currentLocation.code}`, isValid ? 'success' : 'warning');
     },
@@ -367,18 +401,21 @@ const App = {
             return;
         }
         
-        const item = this.masterItems.get(code);
+        // Resolve a scanned Barcode/EAN to its ItemCode (falls back to the
+        // scanned value itself if it already is the ItemCode)
+        const itemCode = this.resolveItemCode(code);
+        const item = this.masterItems.get(itemCode);
         const isValid = !!item;
-        
+
         // Check strict validation
         const strictValidation = await Database.getSetting('strictItemValidation', false);
         if (strictValidation && !isValid) {
             this.showFeedback('Unbekannter Artikel!', 'error');
             return;
         }
-        
+
         this.currentItem = {
-            code,
+            code: itemCode,
             isValid
         };
 
@@ -386,6 +423,7 @@ const App = {
         this.elements.currentItem.textContent = this.currentItem.code;
         this.elements.currentItem.classList.toggle('valid', isValid);
         this.elements.currentItem.classList.toggle('invalid', !isValid);
+        this.updateExpectedScanTarget();
 
         // Show quantity input
         this.elements.quantity.value = 1;
@@ -422,7 +460,8 @@ const App = {
         this.elements.currentItem.textContent = '-';
         this.elements.currentItem.className = 'status-value';
         this.elements.quantityInput.classList.add('hidden');
-        
+        this.updateExpectedScanTarget();
+
         await this.updateRecordCount();
         
         this.showFeedback(`✓ Gespeichert: ${quantity}x`, 'success');
@@ -436,6 +475,7 @@ const App = {
         this.elements.currentItem.textContent = '-';
         this.elements.currentItem.className = 'status-value';
         this.elements.quantityInput.classList.add('hidden');
+        this.updateExpectedScanTarget();
         this.hideFeedback();
     },
     
@@ -476,14 +516,29 @@ const App = {
     async loadMasterDataIntoMemory() {
         const items = await Database.getAllItems();
         const locations = await Database.getAllLocations();
-        
+
         this.masterItems.clear();
+        this.masterItemsByBarcode.clear();
         this.masterLocations.clear();
-        
-        items.forEach(item => this.masterItems.set(item.code, item));
+
+        items.forEach(item => {
+            this.masterItems.set(item.code, item);
+            if (item.barcode) {
+                this.masterItemsByBarcode.set(item.barcode, item.code);
+            }
+        });
         locations.forEach(loc => this.masterLocations.set(loc.code, loc));
-        
+
         console.log(`[App] Loaded ${items.length} items, ${locations.length} locations`);
+    },
+
+    /**
+     * Resolve a scanned code to an ItemCode.
+     * Checks the Barcode/EAN column first (e.g. the EAN-13 printed on the
+     * product), falling back to the scanned value itself being the ItemCode.
+     */
+    resolveItemCode(code) {
+        return this.masterItemsByBarcode.get(code) || code;
     },
     
     /**

@@ -57,7 +57,10 @@ Export → Excel File → Email
 ## Database Schema (IndexedDB)
 
 ### masterItems
-- `code` (primary key): Item barcode/code
+- `code` (primary key): Internal ItemCode (e.g. Code 39 label)
+- `barcode` (optional): EAN/manufacturer barcode printed on the product
+  (e.g. EAN-13). Not a Dexie index — resolved via an in-memory
+  `App.masterItemsByBarcode` map (`barcode -> code`, see `js/app.js`)
 
 ### masterLocations
 - `code` (primary key): Location barcode
@@ -114,14 +117,36 @@ so master data files stay cheap to produce and fast to import at scale
 (tens of thousands of rows) — the app always displays/exports by code.
 
 **Sheet 1: Items**
-| Column A |
-|----------|
-| Code     |
+| Column A | Column B (optional) |
+|----------|----------------------|
+| Code     | Barcode              |
+
+`Barcode` is the EAN/manufacturer barcode printed on the product (e.g.
+EAN-13). It's optional — rows without it just aren't barcode-scannable,
+only scannable by their `Code` label directly. See "Barcode/EAN Scanning"
+below for how this resolves during a scan.
 
 **Sheet 2: Locations**
 | Column A | Column B  |
 |----------|-----------|
 | Code     | Warehouse |
+
+## Barcode/EAN Scanning
+
+Items can carry two distinct codes: an internal `Code` (often a Code 39
+label, e.g. `424810-181-3840`) and a manufacturer `Barcode`/EAN (e.g.
+`4046304144459`, EAN-13 — numeric and shorter than most Code 39 labels).
+
+When a code is scanned (`App.handleScan()` in `js/app.js`):
+1. It's checked against `App.masterItemsByBarcode` (built in
+   `loadMasterDataIntoMemory()`) first — an exact Barcode/EAN match is
+   unambiguously an item, checked before the Lagerplatz/location match.
+2. If found, `App.resolveItemCode()` maps it to the item's `Code`.
+3. That resolved `Code` — never the raw scanned barcode — is what's
+   stored in `scanRecords.itemCode`, shown in the UI, and exported.
+
+So scanning the EAN printed on a product records the same `ItemCode` as
+scanning (or typing) the Code 39 label directly.
 
 ## Shared Master Data File (Server-Hosted)
 

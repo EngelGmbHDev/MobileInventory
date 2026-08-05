@@ -59,11 +59,11 @@
             <!-- Scan Page -->
             <section id="page-scan" class="page active">
                 <div class="scan-status">
-                    <div class="status-item">
+                    <div id="locationStatusItem" class="status-item">
                         <span class="status-label">Lagerplatz:</span>
                         <span id="currentLocation" class="status-value">-</span>
                     </div>
-                    <div class="status-item">
+                    <div id="itemStatusItem" class="status-item">
                         <span class="status-label">Artikel:</span>
                         <span id="currentItem" class="status-value">-</span>
                     </div>
@@ -71,6 +71,11 @@
 
                 <div id="scanner-container">
                     <div id="reader"></div>
+                </div>
+
+                <div id="lastScan" class="last-scan hidden">
+                    <span class="last-scan-label">Zuletzt gescannt:</span>
+                    <span id="lastScanValue" class="last-scan-value">-</span>
                 </div>
 
                 <div id="manual-input" class="manual-input">
