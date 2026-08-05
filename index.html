@@ -14,7 +14,21 @@
     
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
-    
+
+    <!-- Apply theme before first paint to avoid flash -->
+    <script>
+        (function () {
+            try {
+                var pref = localStorage.getItem('theme-preference') || 'system';
+                var resolved = pref === 'system'
+                    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                    : pref;
+                document.documentElement.setAttribute('data-theme', resolved);
+                document.documentElement.setAttribute('data-theme-preference', pref);
+            } catch (e) {}
+        })();
+    </script>
+
     <!-- External Libraries -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -25,7 +39,10 @@
         <!-- Header -->
         <header class="app-header">
             <h1>📦 Mobile Inventur</h1>
-            <button id="menuBtn" class="icon-btn">☰</button>
+            <div class="header-actions">
+                <button id="themeToggle" class="icon-btn" title="Design wechseln">🌓</button>
+                <button id="menuBtn" class="icon-btn">☰</button>
+            </div>
         </header>
 
         <!-- Navigation Menu -->

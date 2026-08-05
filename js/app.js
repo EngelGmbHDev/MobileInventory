@@ -21,7 +21,10 @@ const App = {
         
         // Cache DOM elements
         this.cacheElements();
-        
+
+        // Sync theme toggle icon with theme applied in <head>
+        this.initTheme();
+
         // Setup event listeners
         this.setupEventListeners();
         
@@ -51,7 +54,8 @@ const App = {
      */
     cacheElements() {
         this.elements = {
-            // Menu
+            // Header
+            themeToggle: document.getElementById('themeToggle'),
             menuBtn: document.getElementById('menuBtn'),
             menu: document.getElementById('menu'),
             menuItems: document.querySelectorAll('.menu-item'),
@@ -106,6 +110,15 @@ const App = {
      * Setup event listeners
      */
     setupEventListeners() {
+        // Theme toggle
+        this.elements.themeToggle.addEventListener('click', () => this.cycleTheme());
+
+        // Keep theme in sync with system changes while on "system" preference
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            const pref = document.documentElement.getAttribute('data-theme-preference');
+            if (pref === 'system') this.applyTheme('system');
+        });
+
         // Menu toggle
         this.elements.menuBtn.addEventListener('click', () => this.toggleMenu());
         
@@ -168,6 +181,51 @@ const App = {
         this.elements.resetApp.addEventListener('click', () => this.resetApp());
     },
     
+    /**
+     * Sync theme toggle icon with the theme already applied by the
+     * inline script in <head> (avoids a flash of the wrong theme)
+     */
+    initTheme() {
+        const pref = document.documentElement.getAttribute('data-theme-preference') || 'system';
+        this.updateThemeToggleIcon(pref);
+    },
+
+    /**
+     * Apply a theme preference ('system' | 'light' | 'dark')
+     */
+    applyTheme(pref, persist = true) {
+        const resolved = pref === 'system'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : pref;
+
+        document.documentElement.setAttribute('data-theme', resolved);
+        document.documentElement.setAttribute('data-theme-preference', pref);
+
+        if (persist) localStorage.setItem('theme-preference', pref);
+
+        this.updateThemeToggleIcon(pref);
+    },
+
+    /**
+     * Cycle theme preference: System -> Hell -> Dunkel -> System
+     */
+    cycleTheme() {
+        const order = ['system', 'light', 'dark'];
+        const current = document.documentElement.getAttribute('data-theme-preference') || 'system';
+        const next = order[(order.indexOf(current) + 1) % order.length];
+        this.applyTheme(next);
+    },
+
+    /**
+     * Update theme toggle button icon/label
+     */
+    updateThemeToggleIcon(pref) {
+        const icons = { system: '🌓', light: '☀️', dark: '🌙' };
+        const labels = { system: 'Design: System (Antippen zum Wechseln)', light: 'Design: Hell (Antippen zum Wechseln)', dark: 'Design: Dunkel (Antippen zum Wechseln)' };
+        this.elements.themeToggle.textContent = icons[pref];
+        this.elements.themeToggle.title = labels[pref];
+    },
+
     /**
      * Toggle menu visibility
      */
