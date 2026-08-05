@@ -61,13 +61,8 @@ const Scanner = {
         
         const config = {
             fps: 10,
-<<<<<<< HEAD
-            qrbox: { width: 250, height: 100 },
-            aspectRatio: 2.2,
-=======
             qrbox: { width: 250, height: 200 },
             aspectRatio: 1.1,
->>>>>>> e5a2c02 (Add barcode Column)
             disableFlip: false
         };
         
