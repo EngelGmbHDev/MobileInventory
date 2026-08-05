@@ -62,19 +62,19 @@
                     <div id="locationStatusItem" class="status-item">
                         <span class="status-label">Lagerplatz:</span>
                         <div class="status-value-wrap">
-                            <span id="currentLocation" class="status-value">-</span>
+                            <input type="text" id="currentLocation" class="status-value" placeholder="-" autocomplete="off" autocapitalize="off" spellcheck="false">
                             <button id="clearLocation" class="status-clear hidden" title="Lagerplatz zurücksetzen">✕</button>
                         </div>
                     </div>
                     <div id="itemStatusItem" class="status-item">
                         <span class="status-label">Artikel:</span>
                         <div class="status-value-wrap">
-                            <span id="currentItem" class="status-value">-</span>
+                            <input type="text" id="currentItem" class="status-value" placeholder="-" autocomplete="off" autocapitalize="off" spellcheck="false">
                             <button id="clearItem" class="status-clear hidden" title="Artikel zurücksetzen">✕</button>
                         </div>
                     </div>
                 </div>
-                                <div id="quantity-input" class="quantity-input hidden">
+                <div id="quantity-input" class="quantity-input hidden">
                     <h3>Menge eingeben:</h3>
                     <div class="quantity-controls">
                         <button class="btn btn-large" id="qtyMinus">−</button>
@@ -90,18 +90,6 @@
                 <div id="scanner-container">
                     <div id="reader"></div>
                 </div>
-
-                <div id="lastScan" class="last-scan hidden">
-                    <span class="last-scan-label">Zuletzt gescannt:</span>
-                    <span id="lastScanValue" class="last-scan-value">-</span>
-                </div>
-
-                <div id="manual-input" class="manual-input">
-                    <input type="text" id="manualCode" placeholder="Code manuell eingeben...">
-                    <button id="manualSubmit" class="btn btn-primary">OK</button>
-                </div>
-
-
 
                 <div id="scan-feedback" class="feedback hidden"></div>
             </section>

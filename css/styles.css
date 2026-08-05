@@ -44,14 +44,13 @@ body,
 .menu,
 .scan-status,
 #scanner-container,
-.last-scan,
+.status-value,
 .quantity-input,
 .records-summary,
 .record-item,
 .upload-section,
 .info-card,
 .settings-group,
-.manual-input input,
 .quantity-controls input,
 .setting-item select,
 .setting-item input[type="email"],
@@ -300,6 +299,19 @@ main {
     font-weight: 600;
     font-size: 1.1rem;
     color: var(--heading);
+    font-family: inherit;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    padding: 2px 0;
+    text-align: right;
+    flex: 1;
+    min-width: 0;
+}
+
+.status-value:focus {
+    outline: none;
+    border-bottom-color: var(--primary);
 }
 
 .status-value.valid {
@@ -314,6 +326,9 @@ main {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
+    min-width: 0;
+    margin-left: 12px;
 }
 
 .status-clear {
@@ -351,52 +366,6 @@ main {
 #reader video {
     width: 100% !important;
     border-radius: 12px;
-}
-
-.last-scan {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    background: var(--white);
-    border-radius: 8px;
-    padding: 10px 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 4px var(--shadow);
-}
-
-.last-scan-label {
-    color: var(--text-light);
-    font-size: 0.8rem;
-    white-space: nowrap;
-}
-
-.last-scan-value {
-    font-weight: 700;
-    font-size: 1.3rem;
-    color: var(--heading);
-    font-family: monospace;
-    overflow-wrap: anywhere;
-}
-
-.manual-input {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
-.manual-input input {
-    flex: 1;
-    padding: 14px 16px;
-    border: 2px solid var(--border);
-    border-radius: 8px;
-    font-size: 1rem;
-    background: var(--white);
-    color: var(--text);
-}
-
-.manual-input input:focus {
-    outline: none;
-    border-color: var(--primary);
 }
 
 /* ========================================

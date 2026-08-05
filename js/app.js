@@ -77,10 +77,6 @@ const App = {
             currentItem: document.getElementById('currentItem'),
             clearLocationBtn: document.getElementById('clearLocation'),
             clearItemBtn: document.getElementById('clearItem'),
-            lastScan: document.getElementById('lastScan'),
-            lastScanValue: document.getElementById('lastScanValue'),
-            manualCode: document.getElementById('manualCode'),
-            manualSubmit: document.getElementById('manualSubmit'),
             quantityInput: document.getElementById('quantity-input'),
             quantity: document.getElementById('quantity'),
             qtyMinus: document.getElementById('qtyMinus'),
@@ -145,19 +141,14 @@ const App = {
             });
         });
         
-        // Manual code input
-        this.elements.manualSubmit.addEventListener('click', () => {
-            const code = this.elements.manualCode.value.trim();
-            if (code) {
-                this.handleScan(code);
-                this.elements.manualCode.value = '';
-            }
+        // Manual edit of Lagerplatz/Artikel directly in the status fields
+        this.elements.currentLocation.addEventListener('blur', () => this.commitLocationInput());
+        this.elements.currentLocation.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.elements.currentLocation.blur();
         });
-        
-        this.elements.manualCode.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.elements.manualSubmit.click();
-            }
+        this.elements.currentItem.addEventListener('blur', () => this.commitItemInput());
+        this.elements.currentItem.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.elements.currentItem.blur();
         });
 
         // Clear scanned Lagerplatz/Artikel
@@ -251,18 +242,6 @@ const App = {
     },
 
     /**
-     * Show the most recently scanned raw code below the scanner.
-     * If it resolved via the Barcode/EAN map, also show the ItemCode.
-     */
-    showLastScan(code) {
-        const resolvedItemCode = this.masterItemsByBarcode.get(code);
-        this.elements.lastScanValue.textContent = resolvedItemCode
-            ? `${code} → ItemCode: ${resolvedItemCode}`
-            : code;
-        this.elements.lastScan.classList.remove('hidden');
-    },
-
-    /**
      * Highlight whether a Lagerplatz or Artikel scan is expected next,
      * and show/hide the clear ("✕") buttons for whatever is currently set
      */
@@ -281,13 +260,54 @@ const App = {
     clearLocation() {
         this.currentLocation = null;
         this.currentItem = null;
-        this.elements.currentLocation.textContent = '-';
+        this.elements.currentLocation.value = '';
         this.elements.currentLocation.className = 'status-value';
-        this.elements.currentItem.textContent = '-';
+        this.elements.currentItem.value = '';
         this.elements.currentItem.className = 'status-value';
         this.elements.quantityInput.classList.add('hidden');
         this.updateExpectedScanTarget();
         this.hideFeedback();
+    },
+
+    /**
+     * Reset the Lagerplatz field to the last confirmed value
+     * (used after a rejected/no-op manual edit)
+     */
+    resetLocationInput() {
+        this.elements.currentLocation.value = this.currentLocation ? this.currentLocation.code : '';
+    },
+
+    /**
+     * Reset the Artikel field to the last confirmed value
+     * (used after a rejected/no-op manual edit)
+     */
+    resetItemInput() {
+        this.elements.currentItem.value = this.currentItem ? this.currentItem.code : '';
+    },
+
+    /**
+     * Commit a manually typed Lagerplatz code (fires on blur/Enter)
+     */
+    async commitLocationInput() {
+        const value = this.elements.currentLocation.value.trim();
+        if (!value || (this.currentLocation && value === this.currentLocation.code)) {
+            this.resetLocationInput();
+            return;
+        }
+        await this.setLocation(value);
+    },
+
+    /**
+     * Commit a manually typed Artikel code/Barcode (fires on blur/Enter)
+     */
+    async commitItemInput() {
+        const value = this.elements.currentItem.value.trim();
+        const resolved = value ? this.resolveItemCode(value) : null;
+        if (!value || (this.currentItem && resolved === this.currentItem.code)) {
+            this.resetItemInput();
+            return;
+        }
+        await this.setItem(value);
     },
 
     /**
@@ -345,7 +365,13 @@ const App = {
      */
     async handleScan(code) {
         console.log('[App] Scanned:', code);
-        this.showLastScan(code);
+
+        // Don't let a background camera scan clobber an in-progress manual edit
+        if (document.activeElement === this.elements.currentLocation ||
+            document.activeElement === this.elements.currentItem) {
+            console.log('[App] Ignoring scan while manually editing a field');
+            return;
+        }
 
         // Determine if location or item
         const isLocation = await this.isLocationCode(code);
@@ -399,9 +425,10 @@ const App = {
         const strictValidation = await Database.getSetting('strictLocationValidation', false);
         if (strictValidation && !isValid) {
             this.showFeedback('Unbekannter Lagerplatz!', 'error');
+            this.resetLocationInput();
             return;
         }
-        
+
         this.currentLocation = {
             code,
             isValid
@@ -411,10 +438,11 @@ const App = {
         this.currentItem = null;
 
         // Update UI
-        this.elements.currentLocation.textContent = this.currentLocation.code;
+        this.elements.currentLocation.value = this.currentLocation.code;
         this.elements.currentLocation.classList.toggle('valid', isValid);
         this.elements.currentLocation.classList.toggle('invalid', !isValid);
-        this.elements.currentItem.textContent = '-';
+        this.elements.currentItem.value = '';
+        this.elements.currentItem.className = 'status-value';
         this.elements.quantityInput.classList.add('hidden');
         this.updateExpectedScanTarget();
 
@@ -427,9 +455,10 @@ const App = {
     async setItem(code) {
         if (!this.currentLocation) {
             this.showFeedback('Bitte zuerst Lagerplatz scannen!', 'error');
+            this.resetItemInput();
             return;
         }
-        
+
         // Resolve a scanned Barcode/EAN to its ItemCode (falls back to the
         // scanned value itself if it already is the ItemCode)
         const itemCode = this.resolveItemCode(code);
@@ -440,6 +469,7 @@ const App = {
         const strictValidation = await Database.getSetting('strictItemValidation', false);
         if (strictValidation && !isValid) {
             this.showFeedback('Unbekannter Artikel!', 'error');
+            this.resetItemInput();
             return;
         }
 
@@ -449,7 +479,7 @@ const App = {
         };
 
         // Update UI
-        this.elements.currentItem.textContent = this.currentItem.code;
+        this.elements.currentItem.value = this.currentItem.code;
         this.elements.currentItem.classList.toggle('valid', isValid);
         this.elements.currentItem.classList.toggle('invalid', !isValid);
         this.updateExpectedScanTarget();
@@ -486,7 +516,7 @@ const App = {
         
         // Reset item (keep location)
         this.currentItem = null;
-        this.elements.currentItem.textContent = '-';
+        this.elements.currentItem.value = '';
         this.elements.currentItem.className = 'status-value';
         this.elements.quantityInput.classList.add('hidden');
         this.updateExpectedScanTarget();
@@ -501,7 +531,7 @@ const App = {
      */
     cancelCurrentRecord() {
         this.currentItem = null;
-        this.elements.currentItem.textContent = '-';
+        this.elements.currentItem.value = '';
         this.elements.currentItem.className = 'status-value';
         this.elements.quantityInput.classList.add('hidden');
         this.updateExpectedScanTarget();
