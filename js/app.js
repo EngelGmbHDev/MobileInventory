@@ -513,16 +513,12 @@ const App = {
         };
         
         await Database.addScanRecord(record);
-        
-        // Reset item (keep location)
-        this.currentItem = null;
-        this.elements.currentItem.value = '';
-        this.elements.currentItem.className = 'status-value';
-        this.elements.quantityInput.classList.add('hidden');
-        this.updateExpectedScanTarget();
+
+        // Reset Lagerplatz and Artikel for the next scan
+        this.clearLocation();
 
         await this.updateRecordCount();
-        
+
         this.showFeedback(`✓ Gespeichert: ${quantity}x`, 'success');
     },
     
