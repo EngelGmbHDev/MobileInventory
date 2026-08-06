@@ -84,13 +84,15 @@ const App = {
             saveRecord: document.getElementById('saveRecord'),
             cancelRecord: document.getElementById('cancelRecord'),
             feedback: document.getElementById('scan-feedback'),
-            
+            goToRecords: document.getElementById('goToRecords'),
+
             // Records page
             exportExcel: document.getElementById('exportExcel'),
             sendEmail: document.getElementById('sendEmail'),
             clearRecords: document.getElementById('clearRecords'),
             recordCount: document.getElementById('recordCount'),
             recordsList: document.getElementById('recordsList'),
+            goToScan: document.getElementById('goToScan'),
             
             // Master data page
             masterFileInput: document.getElementById('masterFileInput'),
@@ -171,12 +173,16 @@ const App = {
         // Save/Cancel record
         this.elements.saveRecord.addEventListener('click', () => this.saveCurrentRecord());
         this.elements.cancelRecord.addEventListener('click', () => this.cancelCurrentRecord());
-        
+
+        // Page shortcuts (Scan <-> Aufnahmen)
+        this.elements.goToRecords.addEventListener('click', () => this.navigateTo('records'));
+        this.elements.goToScan.addEventListener('click', () => this.navigateTo('scan'));
+
         // Records page
         this.elements.exportExcel.addEventListener('click', () => this.exportToExcel());
         this.elements.sendEmail.addEventListener('click', () => this.sendByEmail());
         this.elements.clearRecords.addEventListener('click', () => this.clearAllRecords());
-        
+
         // Master data page
         this.elements.loadMasterData.addEventListener('click', () => this.loadMasterFile());
         this.elements.loadMasterDataFromServer.addEventListener('click', () => this.loadMasterDataFromServer());
