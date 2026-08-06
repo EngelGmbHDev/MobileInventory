@@ -523,7 +523,19 @@ const App = {
             isValidItem: this.currentItem.isValid
         };
 
-        await this.saveRecord(record, `✓ Gespeichert: ${quantity}x`);
+        await this.saveRecord(record);
+
+        // Reset Artikel for the next scan, and Lagerplatz too unless the
+        // "Lagerplatz nach Speichern löschen" setting is turned off
+        // (useful for scanning multiple items into the same Lagerplatz)
+        const clearLocationAfterSave = await Database.getSetting('clearLocationAfterSave', true);
+        if (clearLocationAfterSave) {
+            this.clearLocation();
+        } else {
+            this.resetCurrentItemOnly();
+        }
+
+        this.showFeedback(`✓ Gespeichert: ${quantity}x`, 'success');
     },
 
     /**
@@ -544,29 +556,24 @@ const App = {
             isValidItem: true
         };
 
-        await this.saveRecord(record, '✓ Lagerplatz als leer markiert');
+        await this.saveRecord(record);
+
+        // Always clear Lagerplatz + Artikel - an empty Lagerplatz is fully
+        // processed, regardless of the "nach Speichern löschen" setting
+        this.clearLocation();
+
+        this.showFeedback('✓ Lagerplatz als leer markiert', 'success');
     },
 
     /**
-     * Persist a scan record and reset the Scan page for the next one
-     * (shared by saveCurrentRecord and markLocationEmpty)
+     * Persist a scan record and update the records count
+     * (shared by saveCurrentRecord and markLocationEmpty - resetting the
+     * Scan page and showing feedback afterwards is each caller's own job,
+     * since clearLocation() itself hides any currently shown feedback)
      */
-    async saveRecord(record, feedbackMessage) {
+    async saveRecord(record) {
         await Database.addScanRecord(record);
-
-        // Reset Artikel for the next scan, and Lagerplatz too unless the
-        // "Lagerplatz nach Speichern löschen" setting is turned off
-        // (useful for scanning multiple items into the same Lagerplatz)
-        const clearLocationAfterSave = await Database.getSetting('clearLocationAfterSave', true);
-        if (clearLocationAfterSave) {
-            this.clearLocation();
-        } else {
-            this.resetCurrentItemOnly();
-        }
-
         await this.updateRecordCount();
-
-        this.showFeedback(feedbackMessage, 'success');
     },
 
     /**
