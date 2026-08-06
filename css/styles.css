@@ -655,6 +655,25 @@ main {
     font-size: 1rem;
 }
 
+.settings-group p {
+    color: var(--text);
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.settings-group p:last-child {
+    margin-bottom: 0;
+}
+
+.settings-group code {
+    background: var(--light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
 .setting-item {
     display: flex;
     justify-content: space-between;

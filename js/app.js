@@ -106,6 +106,7 @@ const App = {
             cameraSelect: document.getElementById('cameraSelect'),
             beepOnScan: document.getElementById('beepOnScan'),
             vibrateOnScan: document.getElementById('vibrateOnScan'),
+            clearLocationAfterSave: document.getElementById('clearLocationAfterSave'),
             emailRecipient: document.getElementById('emailRecipient'),
             strictItemValidation: document.getElementById('strictItemValidation'),
             strictLocationValidation: document.getElementById('strictLocationValidation'),
@@ -189,6 +190,7 @@ const App = {
         this.elements.cameraSelect.addEventListener('change', (e) => this.saveSetting('camera', e.target.value));
         this.elements.beepOnScan.addEventListener('change', (e) => this.saveSetting('beepOnScan', e.target.checked));
         this.elements.vibrateOnScan.addEventListener('change', (e) => this.saveSetting('vibrateOnScan', e.target.checked));
+        this.elements.clearLocationAfterSave.addEventListener('change', (e) => this.saveSetting('clearLocationAfterSave', e.target.checked));
         this.elements.emailRecipient.addEventListener('change', (e) => this.saveSetting('emailRecipient', e.target.value));
         this.elements.strictItemValidation.addEventListener('change', (e) => this.saveSetting('strictItemValidation', e.target.checked));
         this.elements.strictLocationValidation.addEventListener('change', (e) => this.saveSetting('strictLocationValidation', e.target.checked));
@@ -514,23 +516,38 @@ const App = {
         
         await Database.addScanRecord(record);
 
-        // Reset Lagerplatz and Artikel for the next scan
-        this.clearLocation();
+        // Reset Artikel for the next scan, and Lagerplatz too unless the
+        // "Lagerplatz nach Speichern löschen" setting is turned off
+        // (useful for scanning multiple items into the same Lagerplatz)
+        const clearLocationAfterSave = await Database.getSetting('clearLocationAfterSave', true);
+        if (clearLocationAfterSave) {
+            this.clearLocation();
+        } else {
+            this.resetCurrentItemOnly();
+        }
 
         await this.updateRecordCount();
 
         this.showFeedback(`✓ Gespeichert: ${quantity}x`, 'success');
     },
-    
+
     /**
-     * Cancel current record
+     * Reset only the Artikel (keep Lagerplatz) - shared by "Abbrechen"
+     * and by "Speichern" when clearLocationAfterSave is disabled
      */
-    cancelCurrentRecord() {
+    resetCurrentItemOnly() {
         this.currentItem = null;
         this.elements.currentItem.value = '';
         this.elements.currentItem.className = 'status-value';
         this.elements.quantityInput.classList.add('hidden');
         this.updateExpectedScanTarget();
+    },
+
+    /**
+     * Cancel current record
+     */
+    cancelCurrentRecord() {
+        this.resetCurrentItemOnly();
         this.hideFeedback();
     },
     
@@ -543,6 +560,7 @@ const App = {
         this.elements.cameraSelect.value = settings.camera || 'environment';
         this.elements.beepOnScan.checked = settings.beepOnScan !== false;
         this.elements.vibrateOnScan.checked = settings.vibrateOnScan !== false;
+        this.elements.clearLocationAfterSave.checked = settings.clearLocationAfterSave !== false;
         this.elements.emailRecipient.value = settings.emailRecipient || '';
         this.elements.strictItemValidation.checked = settings.strictItemValidation === true;
         this.elements.strictLocationValidation.checked = settings.strictLocationValidation === true;

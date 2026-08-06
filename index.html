@@ -50,6 +50,7 @@
                 <button data-page="records" class="menu-item">📋 Aufnahmen</button>
                 <button data-page="master" class="menu-item">📁 Stammdaten</button>
                 <button data-page="settings" class="menu-item">⚙️ Einstellungen</button>
+                <button data-page="help" class="menu-item">❓ Hilfe</button>
             </nav>
         </header>
 
@@ -162,6 +163,10 @@
                         <span>Vibration bei Scan</span>
                         <input type="checkbox" id="vibrateOnScan" checked>
                     </label>
+                    <label class="setting-item">
+                        <span>Lagerplatz nach Speichern löschen</span>
+                        <input type="checkbox" id="clearLocationAfterSave" checked>
+                    </label>
                 </div>
 
                 <div class="settings-group">
@@ -193,6 +198,40 @@
                 <div class="app-info">
                     <p>Mobile Inventur v1.0</p>
                     <p>© 2026</p>
+                </div>
+            </section>
+
+            <!-- Help Page -->
+            <section id="page-help" class="page hidden">
+                <div class="settings-group">
+                    <h3>📷 Scannen</h3>
+                    <p>Erst Lagerplatz, dann Artikel scannen – die Zeile, die gerade erwartet wird, ist blau markiert. Nach dem Artikel-Scan Menge eingeben und auf "✓ Speichern" tippen.</p>
+                    <p>Die Felder "Lagerplatz" und "Artikel" lassen sich auch antippen und der Code direkt eingeben oder korrigieren. Mit dem roten ✕ daneben wird das jeweilige Feld zurückgesetzt.</p>
+                    <p>Wird ein Barcode/EAN gescannt, wird automatisch der zugehörige interne Artikel-Code eingetragen und gespeichert – nicht der gescannte Barcode selbst.</p>
+                </div>
+
+                <div class="settings-group">
+                    <h3>📁 Stammdaten</h3>
+                    <p>Excel-Datei mit zwei Blättern hochladen:</p>
+                    <p><strong>Items:</strong> Spalte "Code" (Artikel-Code), optional "Barcode" (EAN).<br>
+                    <strong>Locations:</strong> Spalten "Code" (Lagerplatz) und "Warehouse".</p>
+                    <p>Alternativ kann eine gemeinsame Datei im Projektordner (Standard: <code>data/stammdaten.xlsx</code>) über "🌐 Aus Projektordner laden" verwendet werden, statt jedes Mal manuell hochzuladen.</p>
+                </div>
+
+                <div class="settings-group">
+                    <h3>📋 Aufnahmen</h3>
+                    <p>Alle gespeicherten Scans werden hier aufgelistet. Über "📥 Excel Export" lässt sich die Liste als Excel-Datei herunterladen, über "📧 Per Email" zusätzlich per Mail versenden.</p>
+                </div>
+
+                <div class="settings-group">
+                    <h3>⚙️ Wichtige Einstellungen</h3>
+                    <p><strong>Lagerplatz nach Speichern löschen:</strong> Wenn deaktiviert, bleibt der Lagerplatz nach dem Speichern stehen – praktisch, um mehrere Artikel hintereinander in denselben Lagerplatz zu scannen.</p>
+                    <p><strong>Nur bekannte Artikel/Lagerplätze erlauben:</strong> Lehnt Scans ab, die nicht in den Stammdaten vorkommen.</p>
+                </div>
+
+                <div class="settings-group">
+                    <h3>🌓 Design</h3>
+                    <p>Über das Symbol oben rechts im Kopfbereich lässt sich zwischen System-, Hell- und Dunkel-Design wechseln.</p>
                 </div>
             </section>
         </main>
