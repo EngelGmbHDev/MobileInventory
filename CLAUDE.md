@@ -70,8 +70,10 @@ Export → Excel File → Email
 - `id` (auto): Record ID
 - `timestamp`: Scan time
 - `locationCode`: Scanned location
-- `itemCode`: Scanned item
-- `quantity`: Entered quantity
+- `itemCode`: Scanned item. `null` means the Lagerplatz was checked and
+  found empty (via the "Kein Artikel" button, see `App.markLocationEmpty()`
+  in `js/app.js`) rather than skipped/unrecorded
+- `quantity`: Entered quantity (`0` for empty-Lagerplatz records)
 - `isValidItem`: Was item in master data?
 - `isValidLocation`: Was location in master data?
 

@@ -189,7 +189,7 @@ const Excel = {
         const data = records.map(record => ({
             'Zeitstempel': this.formatDate(record.timestamp),
             'Lagerplatz': record.locationCode,
-            'Artikel': record.itemCode,
+            'Artikel': record.itemCode || 'Kein Artikel (leer)',
             'Menge': record.quantity,
             'Artikel gültig': record.isValidItem ? 'Ja' : 'Nein',
             'Lagerplatz gültig': record.isValidLocation ? 'Ja' : 'Nein'

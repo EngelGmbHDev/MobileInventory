@@ -77,6 +77,7 @@ const App = {
             currentItem: document.getElementById('currentItem'),
             clearLocationBtn: document.getElementById('clearLocation'),
             clearItemBtn: document.getElementById('clearItem'),
+            markEmptyBtn: document.getElementById('markEmptyBtn'),
             quantityInput: document.getElementById('quantity-input'),
             quantity: document.getElementById('quantity'),
             qtyMinus: document.getElementById('qtyMinus'),
@@ -157,7 +158,7 @@ const App = {
         // Clear scanned Lagerplatz/Artikel
         this.elements.clearLocationBtn.addEventListener('click', () => this.clearLocation());
         this.elements.clearItemBtn.addEventListener('click', () => this.cancelCurrentRecord());
-
+        this.elements.markEmptyBtn.addEventListener('click', () => this.markLocationEmpty());
 
         // Quantity controls
         this.elements.qtyMinus.addEventListener('click', () => {
@@ -251,7 +252,8 @@ const App = {
 
     /**
      * Highlight whether a Lagerplatz or Artikel scan is expected next,
-     * and show/hide the clear ("✕") buttons for whatever is currently set
+     * show/hide the clear ("✕") buttons for whatever is currently set,
+     * and offer "Kein Artikel" only while an Artikel scan is expected
      */
     updateExpectedScanTarget() {
         const expectingLocation = !this.currentLocation;
@@ -260,6 +262,7 @@ const App = {
         this.elements.itemStatusItem.classList.toggle('expected', expectingItem);
         this.elements.clearLocationBtn.classList.toggle('hidden', !this.currentLocation);
         this.elements.clearItemBtn.classList.toggle('hidden', !this.currentItem);
+        this.elements.markEmptyBtn.classList.toggle('hidden', !expectingItem);
     },
 
     /**
@@ -509,9 +512,9 @@ const App = {
             this.showFeedback('Lagerplatz und Artikel erforderlich!', 'error');
             return;
         }
-        
+
         const quantity = parseInt(this.elements.quantity.value) || 0;
-        
+
         const record = {
             locationCode: this.currentLocation.code,
             itemCode: this.currentItem.code,
@@ -519,7 +522,36 @@ const App = {
             isValidLocation: this.currentLocation.isValid,
             isValidItem: this.currentItem.isValid
         };
-        
+
+        await this.saveRecord(record, `✓ Gespeichert: ${quantity}x`);
+    },
+
+    /**
+     * Record the current Lagerplatz as checked but empty (no Artikel) -
+     * itemCode is stored as null so it's distinguishable from a real scan
+     */
+    async markLocationEmpty() {
+        if (!this.currentLocation) {
+            this.showFeedback('Bitte zuerst Lagerplatz scannen!', 'error');
+            return;
+        }
+
+        const record = {
+            locationCode: this.currentLocation.code,
+            itemCode: null,
+            quantity: 0,
+            isValidLocation: this.currentLocation.isValid,
+            isValidItem: true
+        };
+
+        await this.saveRecord(record, '✓ Lagerplatz als leer markiert');
+    },
+
+    /**
+     * Persist a scan record and reset the Scan page for the next one
+     * (shared by saveCurrentRecord and markLocationEmpty)
+     */
+    async saveRecord(record, feedbackMessage) {
         await Database.addScanRecord(record);
 
         // Reset Artikel for the next scan, and Lagerplatz too unless the
@@ -534,7 +566,7 @@ const App = {
 
         await this.updateRecordCount();
 
-        this.showFeedback(`✓ Gespeichert: ${quantity}x`, 'success');
+        this.showFeedback(feedbackMessage, 'success');
     },
 
     /**
@@ -716,7 +748,7 @@ const App = {
             <div class="record-item" data-id="${record.id}">
                 <div class="record-info">
                     <div class="record-location">${record.locationCode}</div>
-                    <div class="record-item-code">${record.itemCode}</div>
+                    <div class="record-item-code${record.itemCode ? '' : ' empty'}">${record.itemCode || 'Kein Artikel (leer)'}</div>
                 </div>
                 <div class="record-quantity">${record.quantity}</div>
                 <button class="record-delete" onclick="App.deleteRecord(${record.id})">🗑️</button>
